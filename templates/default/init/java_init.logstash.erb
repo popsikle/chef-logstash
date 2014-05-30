@@ -7,8 +7,8 @@
 # processname: logstash
 
 
-PIDDIR="/var/run"
-export PIDFILE="/var/run/logstash-<%= @name %>.pid"
+PIDDIR="<%= @pid_dir %>"
+export PIDFILE="$PIDDIR/logstash-<%= @name %>.pid"
 export LS_HOME="<%= @home %>"
 export LS_CONFIG="<%= @config_file %>"
 LS_USER="<%= @user %>"

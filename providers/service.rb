@@ -20,6 +20,7 @@ def load_current_resource
   end
 
   @basedir = attributes['basedir'] || defaults['basedir']
+  @pid_directory = attributes['pid_dir'] || defaults['pid_dir']
   @templates_cookbook = new_resource.templates_cookbook  || attributes['service_templates_cookbook'] || defaults['service_templates_cookbook']
   @service_name = new_resource.service_name || "logstash_#{@instance}"
   @home = "#{@basedir}/#{@instance}"
@@ -216,10 +217,19 @@ action :enable do
                   workers: svc[:workers],
                   supervisor_gid: svc[:supervisor_gid],
                   config_file: "#{svc[:home]}/etc/conf.d",
-                  group: svc[:group]
+                  group: svc[:group],
+                  pid_dir: svc[:pid_dir]
                   )
       end
       new_resource.updated_by_last_action(tp.updated_by_last_action?)
+
+      pdr = directory "#{svc[:pid_dir]}" do
+        action :create
+        mode '0755'
+        owner svc[:user]
+        group svc[:group]
+      end
+      new_resource.updated_by_last_action(pdr.updated_by_last_action?)
 
       sv = service svc[:service_name] do
         supports restart: true, reload: true, status: true
@@ -261,7 +271,8 @@ def svc_vars
     debug: @debug,
     install_type: @install_type,
     supervisor_gid: @supervisor_gid,
-    templates_cookbook: @templates_cookbook
+    templates_cookbook: @templates_cookbook,
+    pid_dir: @pid_directory
   }
   svc
 end
